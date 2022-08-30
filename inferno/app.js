@@ -1,56 +1,68 @@
-var rootNode = null;
+(function() {
+	"use strict";
+	var elem = document.getElementById('app');
 
-function queries(query) {
-  return t7`
-    <td class="${ 'Query ' + query.elapsedClassName }">
-      <span class="foo">${ query.formatElapsed }</span>
-      <div class="popover left">
-        <div class="popover-content">${ query.query }</div>
-        <div class="arrow"></div>
-      </div>
-    </td>
-  `
-};
+	var createVNode = Inferno.createVNode;
+	var staticNode = createVNode(2, 'div', { className: 'arrow' }, null, null, null, null, true);
+	var tableProps = {
+		className: 'table table-striped latest-data'
+	};
+	var dbName = {
+		className: 'dbname'
+	};
+	var dbQueryCount = {
+		className: 'query-count'
+	};
+	var foo = {
+		className: 'foo'
+	};
+	var popoverLeft = {
+		className: 'popover left'
+	};
+	var popoverContent = {
+		className: 'popover-content'
+	};
 
-function database(db) {
-  return t7`
-    <tr key="${ db.dbname }">
+	function renderBenchmark(dbs) {
+		var length = dbs.length;
+		var databases = new Array(length);
 
-      <td class="dbname">
-        ${ db.dbname }
-      </td>
+		for (var i = 0; i < length; i++) {
+			var db = dbs[i];
+			var lastSample = db.lastSample;
+			var children = new Array(7);
 
-      <td class="query-count">
-        <span class="${ db.lastSample.countClassName }">
-          ${ db.lastSample.nbQueries }
-        </span>
-      </td>
+			children[0] = createVNode(2, 'td', dbName, db.dbname, null, null, null, true);
+			children[1] = createVNode(2, 'td', dbQueryCount, createVNode(2, 'span', {
+				className: lastSample.countClassName
+			}, lastSample.nbQueries, null, null, null, true), null, null, null, true);
 
-      ${ db.lastSample.topFiveQueries.map( queries) }
+			for (var i2 = 0; i2 < 5; i2++) {
+				var query = lastSample.topFiveQueries[i2];
 
-    </tr>
-  `;
-};
+				children[i2 + 2] = createVNode(66, 'td', {
+					className: query.elapsedClassName
+				}, [
+					createVNode(2, 'div', foo, query.formatElapsed, null, null, null, true),
+					createVNode(66, 'div', popoverLeft, [
+						createVNode(2, 'div', popoverContent, query.query, null, null, null, true),
+						staticNode
+					], null, null, null, true)
+				], null, null, null, true);
+				databases[i] = createVNode(66, 'tr', null, children, null, null, null, true);
+			}
+		}
 
-var appElem = document.getElementById("app");
+		Inferno.render(
+			createVNode(2, 'table', tableProps, createVNode(66, 'tbody', null, databases, null, null, null, true), null, null, null, true),
+		elem);
+	}
 
-function loadSamples() {
-  var dbs = ENV.generateData().toArray();
-
-  var table = t7`
-    <table class="table table-striped latest-data">
-      <tbody>
-        ${ dbs.map( database )}
-      </tbody>
-    </table>
-  `;
-
-  Inferno.render(table, appElem);
-
-  Monitoring.renderRate.ping();
-  setTimeout(loadSamples, ENV.timeout);
-};
-
-$(function() {
-  loadSamples();
-});
+	function render() {
+		var dbs = ENV.generateData(false).toArray();
+		renderBenchmark(dbs);
+		Monitoring.renderRate.ping();
+		setTimeout(render, ENV.timeout);
+	}
+	render();
+})();

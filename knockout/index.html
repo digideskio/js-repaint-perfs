@@ -3,7 +3,6 @@
 <head>
     <meta name="description" content="DBMON Knockout"/>
     <script src="../lib/knockout-min.js"></script>
-    <link href="../lib/bootstrap.min.css" rel="stylesheet" type="text/css"/>
     <link href="../styles.css" rel="stylesheet" type="text/css"/>
     <meta charset="utf-8">
     <title>dbmon (knockout)</title>
@@ -24,7 +23,8 @@
             </td>
             <!-- Query -->
             <!-- ko foreach: lastSample.topFiveQueries -->
-            <td data-bind="text: formatElapsed, attr: { class: elapsedClassName}">
+            <td data-bind="attr: { class: elapsedClassName}">
+                <!-- ko text: formatElapsed--><!-- /ko -->
                 <div class="popover left">
                     <div class="popover-content" data-bind="text: query">
                     </div>
