@@ -1,32 +1,28 @@
 $(function() {
-  domvm.view.config({useRaf: false});
+  var h = (tag, arg1, arg2) => domvm.defineElement(tag, arg1, arg2, domvm.FIXED_BODY);
 
   function DBMonView() {
-    return function(vm, data) {
-      return ["div",
-        ["table", { class: "table table-striped latest-data" },
-          ["tbody",
-            data.map(function(db) {
-              return ["tr",
-                ["td", { class: "dbname" }, db.dbname],
-                ["td", { class: "query-count" },
-                  ["span", { class: db.lastSample.countClassName }, db.lastSample.nbQueries]
-                ],
-                db.lastSample.topFiveQueries.map(function(query) {
-                  return ["td", { class: "Query " + query.elapsedClassName },
-                    ["span", query.formatElapsed],
-                    ["div", { class: "popover left" },
-                      ["div", { class: "popover-content" }, query.query],
-                      ["div", { class: "arrow" }]
-                    ]
-                  ];
-                })
-              ];
-            })
-          ]
-        ]
-      ];
-    }
+    return (vm, dbs) =>
+      h("div", [
+        h("table.table.table-striped.latest-data", [
+          h("tbody", dbs.map(db =>
+            h("tr", [
+              h("td.dbname", db.dbname),
+              h("td.query-count", [
+                h("span", { class: db.lastSample.countClassName }, db.lastSample.nbQueries)
+              ])
+            ].concat(db.lastSample.topFiveQueries.map(query =>
+              h("td", { class: query.elapsedClassName }, [
+                h("span", query.formatElapsed),
+                h(".popover.left", [
+                  h(".popover-content", query.query),
+                  h(".arrow"),
+                ])
+              ])
+            )))
+          ))
+        ])
+      ])
   }
 
   function getData() {
@@ -39,7 +35,7 @@ $(function() {
     setTimeout(update, ENV.timeout);
   };
 
-  var view = domvm.view(DBMonView, getData(), false).mount(document.getElementById("app"));
+  var view = domvm.createView(DBMonView, getData(), false).mount(document.getElementById("app"));
 
   update();
 });
